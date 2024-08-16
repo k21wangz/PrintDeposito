@@ -7,7 +7,7 @@ return [
     | Default Queue Connection Name
     |--------------------------------------------------------------------------
     |
-    | Laravel's queue supports a variety of backends via a single, unified
+    | Laravel's queue supports a.blade.php variety of backends via a.blade.php single, unified
     | API, giving you convenient access to each backend using identical
     | syntax for each. The default queue connection is defined below.
     |
@@ -97,7 +97,7 @@ return [
     |
     | These options configure the behavior of failed queue job logging so you
     | can control how and where failed jobs are stored. Laravel ships with
-    | support for storing failed jobs in a simple file or in a database.
+    | support for storing failed jobs in a.blade.php simple file or in a.blade.php database.
     |
     | Supported drivers: "database-uuids", "dynamodb", "file", "null"
     |

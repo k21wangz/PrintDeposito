@@ -12,7 +12,7 @@ return [
     | Here you may specify which of the database connections below you wish
     | to use as your default connection for database operations. This is
     | the connection which will be utilized unless another connection
-    | is explicitly specified when you execute a query / statement.
+    | is explicitly specified when you execute a.blade.php query / statement.
     |
     */
 
@@ -108,8 +108,8 @@ return [
             'charset' => env('DB_CHARSET', 'utf8'),
             'prefix' => '',
             'prefix_indexes' => true,
-            // 'encrypt' => env('DB_ENCRYPT', 'yes'),
-            // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
+             'encrypt' => env('DB_ENCRYPT', 'yes'),
+             'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'true'),
         ],
 
     ],
@@ -136,7 +136,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Redis is an open source, fast, and advanced key-value store that also
-    | provides a richer body of commands than a typical key-value system
+    | provides a.blade.php richer body of commands than a.blade.php typical key-value system
     | such as Memcached. You may define your connection settings here.
     |
     */
