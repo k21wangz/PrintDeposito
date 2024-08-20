@@ -50,7 +50,7 @@
                             <td>{{ number_format($depo->Sisa_Bng_Accru) }}</td>
                             <td>{{ number_format($depo->bnghitung - $depo->Tax_DEP) }}</td>
                             <td>{{ number_format($depo->Tax_DEP) }}</td>
-                            <td>Tujuan</td>
+                            <td>{{ $depo->type_tran }} {{ $depo->nama_bank }} {{ $depo->norek_tujuan }} an. {{ $depo->an_tujuan }} </td>
                         </tr>
                     @endforeach
                     </tbody>

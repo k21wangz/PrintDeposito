@@ -3,31 +3,55 @@
 @section('title','Buat Tujuan Deposito')
 @section('container')
     <h1>Create New Transaction Purpose</h1>
-
-    <form action="{{ route('tujuandepo.store') }}" method="POST">
+    <form method="POST" action="{{ route('tujuandepo.store') }}">
         @csrf
-        <select name="noacc_depo" id="noacc_depo" required>
-            @foreach($noaccList as $noacc)
-                <option value="{{ $noacc->noacc }}">{{ $noacc->noacc }}-{{ $noacc->fnama }}</option>
-            @endforeach
-        </select>
 
-        <label for="purpose_type">Purpose Type:</label>
-        <select name="purpose_type" id="purpose_type" required>
-            <option value="cash">Cash</option>
-            <option value="tabungan">Tabungan</option>
-            <option value="transfer">Transfer</option>
-        </select>
+        <!-- noacc depo -->
+        <div>
+            <select name="noacc_depo">
+                @foreach ($noaccList as $noacc)
+                    <option value="{{ $noacc->noacc }}" @selected(old('noacc_depo') == $noacc->noacc)>
+                        {{ $noacc->noacc }}-{{ $noacc->fnama }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
 
-        <label for="account_number">Account Number:</label>
-        <input type="text" name="account_number" id="account_number">
+        <!-- Email Address -->
+        <div class="mt-4">
+            <x-input-label for="type_tran" :value="__('type_tran')" />
+            <select name="type_tran" id="type_tran" required @selected(old('type_tran'))>
+                <option value="Cash">Cash</option>
+                <option value="Tabungan">Tabungan</option>
+                <option value="Transfer">Transfer</option>
+            </select>
+        </div>
 
-        <label for="account_holder_name">Account Holder Name:</label>
-        <input type="text" name="account_holder_name" id="account_holder_name">
+        <!-- Email Address -->
+        <div class="mt-4">
+            <x-input-label for="norek_tujuan" :value="__('norek_tujuan')" />
+            <x-text-input id="norek_tujuan" class="block mt-1 w-full" type="text" name="norek_tujuan" :value="old('norek_tujuan')" autocomplete="norek_tujuan" />
+            <x-input-error :messages="$errors->get('norek_tujuan')" class="mt-2" />
+        </div>
 
-        <label for="bank_name">Bank Name:</label>
-        <input type="text" name="bank_name" id="bank_name">
+        <!-- Email Address -->
+        <div class="mt-4">
+            <x-input-label for="an_tujuan" :value="__('an_tujuan')" />
+            <x-text-input id="an_tujuan" class="block mt-1 w-full" type="text" name="an_tujuan" :value="old('an_tujuan')" autocomplete="an_tujuan" />
+            <x-input-error :messages="$errors->get('an_tujuan')" class="mt-2" />
+        </div>
 
-        <button type="submit">Create</button>
+        <!-- Password -->
+        <div class="mt-4">
+            <x-input-label for="nama_bank" :value="__('nama_bank')" />
+            <x-text-input id="nama_bank" class="block mt-1 w-full" type="text" name="nama_bank" :value="old('nama_bank')" autocomplete="nama_bank"/>
+            <x-input-error :messages="$errors->get('nama_bank')" class="mt-2" />
+        </div>
+
+        <div class="flex items-center justify-end mt-4">
+            <x-primary-button class="ms-4">
+                {{ __('Submit') }}
+            </x-primary-button>
+        </div>
     </form>
 @endsection
