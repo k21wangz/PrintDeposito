@@ -3,55 +3,101 @@
 @section('title','Buat Tujuan Deposito')
 @section('container')
     <h1>Create New Transaction Purpose</h1>
-    <form method="POST" action="{{ route('tujuandepo.store') }}">
+    <form method="POST" action="{{ route('tujuandepo.store') }}" class="needs-validation" novalidate>
         @csrf
-
         <!-- noacc depo -->
-        <div>
-            <select name="noacc_depo">
-                @foreach ($noaccList as $noacc)
-                    <option value="{{ $noacc->noacc }}" @selected(old('noacc_depo') == $noacc->noacc)>
-                        {{ $noacc->noacc }}-{{ $noacc->fnama }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+        <div class="container mt-5">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Tambah Tujuan Deposito Baru</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="noacc_depo" class="form-label fw-bold">
+                                    <i class="fas fa-user me-1"></i>Pilih Nasabah
+                                </label>
+                                <select name="noacc_depo" class="form-select" required>
+                                    <option value="">-- Pilih Nasabah --</option>
+                                    @foreach ($noaccList as $noacc)
+                                        <option value="{{ $noacc->noacc }}" @selected(old('noacc_depo') == $noacc->noacc)>
+                                            {{ $noacc->noacc }} - {{ $noacc->fnama }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="type_tran" class="form-label fw-bold">
+                                    <i class="fas fa-money-bill me-1"></i>Jenis Transaksi
+                                </label>
+                                <select name="type_tran" id="type_tran" class="form-select" required>
+                                    <option value="">-- Pilih Jenis Transaksi --</option>
+                                    <option value="Cash" @selected(old('type_tran') == 'Cash')>Cash</option>
+                                    <option value="Tabungan" @selected(old('type_tran') == 'Tabungan')>Tabungan</option>
+                                    <option value="Transfer" @selected(old('type_tran') == 'Transfer')>Transfer</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="norek_tujuan" class="form-label fw-bold">
+                                    <i class="fas fa-credit-card me-1"></i>Nomor Rekening Tujuan
+                                </label>
+                                <input type="text" name="norek_tujuan" id="norek_tujuan" 
+                                    class="form-control @error('norek_tujuan') is-invalid @enderror"
+                                    value="{{ old('norek_tujuan') }}" placeholder="Masukkan nomor rekening">
+                                @error('norek_tujuan')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="type_tran" :value="__('type_tran')" />
-            <select name="type_tran" id="type_tran" required @selected(old('type_tran'))>
-                <option value="Cash">Cash</option>
-                <option value="Tabungan">Tabungan</option>
-                <option value="Transfer">Transfer</option>
-            </select>
-        </div>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="an_tujuan" class="form-label fw-bold">
+                                    <i class="fas fa-user me-1"></i>Atas Nama
+                                </label>
+                                <input type="text" name="an_tujuan" id="an_tujuan"
+                                    class="form-control @error('an_tujuan') is-invalid @enderror"
+                                    value="{{ old('an_tujuan') }}" placeholder="Masukkan nama pemilik rekening">
+                                @error('an_tujuan')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="norek_tujuan" :value="__('norek_tujuan')" />
-            <x-text-input id="norek_tujuan" class="block mt-1 w-full" type="text" name="norek_tujuan" :value="old('norek_tujuan')" autocomplete="norek_tujuan" />
-            <x-input-error :messages="$errors->get('norek_tujuan')" class="mt-2" />
-        </div>
-
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="an_tujuan" :value="__('an_tujuan')" />
-            <x-text-input id="an_tujuan" class="block mt-1 w-full" type="text" name="an_tujuan" :value="old('an_tujuan')" autocomplete="an_tujuan" />
-            <x-input-error :messages="$errors->get('an_tujuan')" class="mt-2" />
-        </div>
-
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="nama_bank" :value="__('nama_bank')" />
-            <x-text-input id="nama_bank" class="block mt-1 w-full" type="text" name="nama_bank" :value="old('nama_bank')" autocomplete="nama_bank"/>
-            <x-input-error :messages="$errors->get('nama_bank')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button class="ms-4">
-                {{ __('Submit') }}
-            </x-primary-button>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="nama_bank" class="form-label fw-bold">
+                                    <i class="fas fa-university me-1"></i>Nama Bank
+                                </label>
+                                <input type="text" name="nama_bank" id="nama_bank"
+                                    class="form-control @error('nama_bank') is-invalid @enderror"
+                                    value="{{ old('nama_bank') }}" placeholder="Masukkan nama bank">
+                                @error('nama_bank')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-end mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Simpan Data
+                        </button>
+                        <a href="{{ route('tujuandepo.index') }}" class="btn btn-secondary ms-2">
+                            <i class="fas fa-times me-1"></i>Batal
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </form>
 @endsection

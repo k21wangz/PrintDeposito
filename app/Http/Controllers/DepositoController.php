@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Deposito;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Spatie\Browsershot\Browsershot;
+use App\Models\Tanggal;
+use App\Models\DepositoTanpaPajak;
 
 class DepositoController extends Controller
 {
@@ -46,6 +49,47 @@ class DepositoController extends Controller
 
 
         return view('deposito.index', compact('tanggal','deposito'));
+    }
+    public function report(Request $request)
+    {
+        $pajakStatus = json_decode($request->pajakStatus, true) ?? [];
+        
+        $deposito = DB::table('m_deposito as d')
+            ->join('transaksi as t', 'd.noacc', '=', 't.dokumen')
+            ->leftJoin('tujuan_depos as td', 'd.noacc', '=', 'td.noacc_depo')
+            ->leftJoin('it_deposito_tanpa_pajak as tp', 'd.noacc', '=', 'tp.noacc')
+            ->select(
+                'd.noacc',
+                'd.fnama',
+                'd.nominal',
+                'd.bnghitung',
+                'td.type_tran',
+                'td.norek_tujuan',
+                'td.an_tujuan',
+                'td.nama_bank',
+                'tp.noacc as is_tax_free',
+                DB::raw("MAX(CASE WHEN t.ket LIKE '%Bng DEP Acru%' THEN t.nominal ELSE 0 END) AS Bng_DEP_Acru"),
+                DB::raw("MAX(CASE WHEN t.ket LIKE '%Tax DEP%' THEN t.nominal ELSE 0 END) AS Tax_DEP"),
+                DB::raw("MAX(CASE WHEN t.ket LIKE '%Sisa Bng DEP Acru%' THEN t.nominal ELSE 0 END) AS Sisa_Bng_Accru")
+            )
+            ->groupBy('d.noacc', 'd.fnama', 'd.nominal', 'd.bnghitung', 'td.type_tran',
+                'td.norek_tujuan', 'td.an_tujuan', 'td.nama_bank', 'tp.noacc')
+            ->where('d.kodecab', '=', auth()->user()->kodecab)
+            ->get()
+            ->map(function($item) use ($pajakStatus) {
+                // Jika status pajak false atau tidak ada, set Tax_DEP ke 0
+                if (isset($pajakStatus[$item->noacc]) && !$pajakStatus[$item->noacc]) {
+                    $item->Tax_DEP = 0;
+                }
+                return $item;
+            });
+            
+        $tanggal = Tanggal::all();
+        
+        return view('deposito.report', [
+            'deposito' => $deposito,
+            'tanggal' => $tanggal
+        ]);
     }
 
     /**
@@ -94,5 +138,29 @@ class DepositoController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function updatePajak(Request $request)
+    {
+        $deposito = Deposito::where('noacc', $request->noacc)->first();
+        $isPajakActive = $request->is_pajak;
+        
+        if ($deposito) {
+            if (!$isPajakActive) {
+                $deposito->Tax_DEP = 0;
+                // Hitung ulang nilai-nilai terkait
+                $deposito->save();
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Pajak berhasil diupdate'
+            ]);
+        }
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Deposito tidak ditemukan'
+        ]);
     }
 }

@@ -1,10 +1,9 @@
 <nav x-data="{ open: false }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
-    <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
-            <div class="flex">
+            <div class="flex items-center">
                 <!-- Logo -->
-                <div class="shrink-0 flex items-center">
+                <div class="shrink-0">
                     <a href="{{ route('dashboard') }}">
                         <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
                     </a>
@@ -15,6 +14,12 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('deposito.index')" :active="request()->routeIs('deposito.*')">
+                        {{ __('Deposito') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('tujuandepo.index')" :active="request()->routeIs('tujuandepo.*')">
+                        {{ __('Tujuan Deposito') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -24,7 +29,6 @@
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
                             <div>{{ Auth::user()->name }}</div>
-
                             <div class="ms-1">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -38,10 +42,8 @@
                             {{ __('Profile') }}
                         </x-dropdown-link>
 
-                        <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-
                             <x-dropdown-link :href="route('logout')"
                                     onclick="event.preventDefault();
                                                 this.closest('form').submit();">
@@ -70,6 +72,12 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('deposito.index')" :active="request()->routeIs('deposito.*')">
+                {{ __('Deposito') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('tujuandepo.index')" :active="request()->routeIs('tujuandepo.*')">
+                {{ __('Tujuan Deposito') }}
+            </x-responsive-nav-link>
         </div>
 
         <!-- Responsive Settings Options -->
@@ -84,10 +92,8 @@
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
 
-                <!-- Authentication -->
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-
                     <x-responsive-nav-link :href="route('logout')"
                             onclick="event.preventDefault();
                                         this.closest('form').submit();">
@@ -98,3 +104,51 @@
         </div>
     </div>
 </nav>
+
+<style>
+/* Styling untuk navigation */
+nav {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Logo */
+nav .shrink-0 a {
+    display: flex;
+    align-items: center;
+}
+
+/* Link navigasi */
+nav .nav-link {
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+nav .nav-link:hover {
+    color: #4a90e2; /* Warna hover */
+}
+
+/* Dropdown */
+nav .dropdown-link {
+    transition: background-color 0.3s;
+}
+
+nav .dropdown-link:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Hamburger menu */
+nav .hamburger {
+    transition: transform 0.3s;
+}
+
+nav .hamburger:hover {
+    transform: scale(1.1);
+}
+
+/* Responsive styling */
+@media (max-width: 640px) {
+    nav .flex {
+        flex-direction: column;
+    }
+}
+</style>
