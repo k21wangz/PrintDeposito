@@ -10,7 +10,7 @@
             use Carbon\Carbon;
         @endphp
         @foreach($tanggal as $tgl)
-            <h4>Periode : {{ Carbon::createFromFormat('dmY', $tgl->tgl)->format('d-m-Y') }}</h4>
+            <h4>Periode: {{ $tgl }}</h4>
         @endforeach
 
         <div class="container-fluid px-4">
@@ -181,10 +181,10 @@
                             <td>{{ $depo->type_tran }} {{ $depo->nama_bank }} {{ $depo->norek_tujuan }} an. {{ $depo->an_tujuan }}</td>
                             <td class="text-center">
                                 <div class="btn-group" role="group">
-                                    <a href="{{ url('/report2') }}" class="btn btn-sm btn-primary me-2">
+                                    <a href="{{ route('report.tiket1', $depo->nobilyet) }}" class="btn btn-sm btn-primary">
                                         <i class="fas fa-print"></i> Print Tiket 1
                                     </a>
-                                    <a href="{{ url('/report3') }}" class="btn btn-sm btn-success">
+                                    <a href="{{ route('report.tiket2', $depo->nobilyet) }}" class="btn btn-sm btn-success">
                                         <i class="fas fa-print"></i> Print Tiket 2
                                     </a>
                                 </div>

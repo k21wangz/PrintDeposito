@@ -24,5 +24,7 @@ Route::get('/report', [DepositoController::class, 'report'])->name('deposito.rep
 Route::post('/update-pajak', [DepositoController::class, 'updatePajak'])->name('update.pajak');
 Route::resource('deposito-tanpa-pajak', DepositoTanpaPajakController::class);
 Route::get('/deposito-pdf', [DepositoPdfController::class, 'generatePDF'])->name('deposito.pdf');
+Route::get('/report2/{id}', [DepositoController::class, 'printTiket1'])->name('report.tiket1');
+Route::get('/report3/{id}', [DepositoController::class, 'printTiket2'])->name('report.tiket2');
 require __DIR__.'/auth.php';
 

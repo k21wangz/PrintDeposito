@@ -15,41 +15,36 @@ class DepositoController extends Controller
      * Display a listing of the resource.
      */
 
-    public function index()
-    {
+     public function index()
+     {
+         $tanggal = [
+             date('d/m/Y'), // Contoh tanggal
+             // Tambahkan tanggal lain jika perlu
+         ];
 
-        $deposito = DB::table('m_deposito as d')
-            ->join('transaksi as t', 'd.noacc', '=', 't.dokumen')
-            ->leftJoin('tujuan_depos as td ', 'd.noacc', '=', 'td.noacc_depo')
-            ->select(
-                'd.noacc',
-                'd.fnama',
-                'd.nominal',
-                'd.bnghitung',
-                'td.type_tran',
-                'td.norek_tujuan',
-                'td.an_tujuan',
-                'td.nama_bank',
-                DB::raw("MAX(CASE WHEN t.ket LIKE '%Bng DEP Acru%' THEN t.nominal ELSE 0 END) AS Bng_DEP_Acru"),
-                DB::raw("MAX(CASE WHEN t.ket LIKE '%Tax DEP%' THEN t.nominal ELSE 0 END) AS Tax_DEP"),
-                DB::raw("MAX(CASE WHEN t.ket LIKE '%Sisa Bng DEP Acru%' THEN t.nominal ELSE 0 END) AS Sisa_Bng_Accru"),
-                DB::raw("MAX(CASE WHEN t.ket LIKE '%Bng DEP # an%' THEN t.nominal ELSE 0 END) AS Bng_Dep"),
-                DB::raw("MAX(CASE WHEN t.ket LIKE '%Penc Titipan Bunga%' THEN t.nominal ELSE 0 END) AS Penc_Titipan_Bunga")
-            )
-            ->groupBy('d.noacc', 'd.fnama', 'd.nominal', 'd.bnghitung','td.type_tran',
-                'td.norek_tujuan',
-                'td.an_tujuan',
-                'td.nama_bank')
-            ->where('d.kodecab', '=', auth()->user()->kodecab)
-            ->orderBy('d.noacc')
-            ->get();
-
-        //menampilkan tanggal database
-        $tanggal = DB::table('tanggal')->select('tgl')->get();
-
-
-        return view('deposito.index', compact('tanggal','deposito'));
-    }
+         $deposito = DB::table('m_deposito as d')
+             ->join('transaksi as t', 'd.noacc', '=', 't.dokumen')
+             ->leftJoin('tujuan_depos as td', 'd.noacc', '=', 'td.noacc_depo')
+             ->select(
+                 'd.nobilyet', // Pastikan untuk memilih nobilyet
+                 'd.noacc',
+                 'd.fnama',
+                 'd.nominal',
+                 'd.bnghitung',
+                 'td.type_tran',
+                 'td.norek_tujuan',
+                 'td.an_tujuan',
+                 'td.nama_bank',
+                 DB::raw("MAX(CASE WHEN t.ket LIKE '%Bng DEP Acru%' THEN t.nominal ELSE 0 END) AS Bng_DEP_Acru"),
+                 DB::raw("MAX(CASE WHEN t.ket LIKE '%Tax DEP%' THEN t.nominal ELSE 0 END) AS Tax_DEP"),
+                 DB::raw("MAX(CASE WHEN t.ket LIKE '%Sisa Bng DEP Acru%' THEN t.nominal ELSE 0 END) AS Sisa_Bng_Accru")
+             )
+             ->groupBy('d.nobilyet', 'd.noacc', 'd.fnama', 'd.nominal', 'd.bnghitung', 'td.type_tran', 'td.norek_tujuan', 'td.an_tujuan', 'td.nama_bank')
+             ->where('d.kodecab', '=', auth()->user()->kodecab)
+             ->get();
+         
+         return view('deposito.index', compact('tanggal', 'deposito'));
+     }
     public function report(Request $request)
     {
         $pajakStatus = json_decode($request->pajakStatus, true) ?? [];
@@ -76,9 +71,9 @@ class DepositoController extends Controller
                 'td.norek_tujuan', 'td.an_tujuan', 'td.nama_bank', 'tp.noacc')
             ->where('d.kodecab', '=', auth()->user()->kodecab)
             ->get()
-            ->map(function($item) use ($pajakStatus) {
-                // Jika status pajak false atau tidak ada, set Tax_DEP ke 0
-                if (isset($pajakStatus[$item->noacc]) && !$pajakStatus[$item->noacc]) {
+            ->map(function($item) {
+                // Set pajak = 0 jika rekening ada di tabel bebas pajak
+                if ($item->is_tax_free) {
                     $item->Tax_DEP = 0;
                 }
                 return $item;
@@ -162,5 +157,38 @@ class DepositoController extends Controller
             'success' => false,
             'message' => 'Deposito tidak ditemukan'
         ]);
+    }
+
+    public function printTiket1($nobilyet)
+    {
+        $deposito = Deposito::where('nobilyet', $nobilyet)->firstOrFail();
+        $nominal = $deposito->nominal; // Ganti dengan field yang sesuai
+        $jatuhTempo = $deposito->jatuhTempo; // Ganti dengan field yang sesuai
+        $kewajibanSegera = $deposito->kewajibanSegera; // Ganti dengan field yang sesuai
+
+        // Menghitung terbilang
+        $terbilang = ucfirst(terbilang($nominal + $kewajibanSegera)); // Menggunakan ucfirst untuk huruf kapital
+
+        // Mendapatkan tanggal saat ini
+        $tanggal = date('d/m/Y');
+
+        return view('report.tiket', compact('nominal', 'jatuhTempo', 'kewajibanSegera', 'deposito', 'terbilang', 'tanggal'));
+    }
+
+    public function printTiket2($nobilyet)
+    {
+        $deposito = Deposito::where('nobilyet', $nobilyet)->firstOrFail();
+        $nominal = $deposito->nominal; // Ganti dengan field yang sesuai
+        $tambahan = $deposito->tambahan; // Ganti dengan field yang sesuai
+        $kewajibanSegera = $deposito->kewajibanSegera; // Ganti dengan field yang sesuai
+        $jatuhTempo = $deposito->jatuhTempo; // Ganti dengan field yang sesuai
+
+        // Menghitung terbilang
+        $terbilang = ucfirst(terbilang($nominal + $kewajibanSegera)); // Menggunakan ucfirst untuk huruf kapital
+
+        // Mendapatkan tanggal saat ini
+        $tanggal = date('d/m/Y');
+
+        return view('report.tiket2', compact('nominal', 'tambahan', 'kewajibanSegera', 'jatuhTempo', 'deposito', 'terbilang', 'tanggal'));
     }
 }
