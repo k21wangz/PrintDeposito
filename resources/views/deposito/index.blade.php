@@ -187,12 +187,16 @@
                                         <td>{{ $depo->type_tran }} {{ $depo->nama_bank }} {{ $depo->norek_tujuan }} an. {{ $depo->an_tujuan }}</td>
                                         <td class="text-center">
                                             <div class="btn-group" role="group">
-                                                <a href="{{ route('report.tiket1', $depo->nobilyet) }}" class="btn btn-sm btn-primary">
-                                                    <i class="fas fa-print"></i> Print Tiket 1
-                                                </a>
-                                                <a href="{{ route('report.tiket2', $depo->nobilyet) }}" class="btn btn-sm btn-success">
-                                                    <i class="fas fa-print"></i> Print Tiket 2
-                                                </a>
+                                                {{-- Tombol Print Tiket 2 hanya aktif jika type_tran Transfer --}}
+                                                @if($depo->type_tran === 'Transfer')
+                                                    <a href="{{ route('report.tiket2', $depo->nobilyet) }}" class="btn btn-sm btn-success">
+                                                        <i class="fas fa-print"></i> Print Tiket 2
+                                                    </a>
+                                                @else
+                                                    <button class="btn btn-sm btn-success" disabled style="pointer-events: none; opacity: 0.6;">
+                                                        <i class="fas fa-print"></i> Print Tiket 2
+                                                    </button>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>
