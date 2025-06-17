@@ -9,8 +9,15 @@ class DepositoTanpaPajakController extends Controller
 {
     public function index()
     {
-        $rekening = DepositoTanpaPajak::all();
-        return view('deposito.tanpa-pajak.index', compact('rekening'));
+        $rekening = \App\Models\DepositoTanpaPajak::all();
+        $nasabahMap = \DB::table('m_deposito')->pluck('fnama', 'noacc')->toArray();
+        return view('deposito.tanpa_pajak.index', compact('rekening', 'nasabahMap'));
+    }
+
+    public function create()
+    {
+        $noaccList = \DB::table('m_deposito')->select('noacc', 'fnama')->get();
+        return view('deposito.tanpa_pajak.create', compact('noaccList'));
     }
 
     public function store(Request $request)
@@ -33,4 +40,4 @@ class DepositoTanpaPajakController extends Controller
         DepositoTanpaPajak::destroy($id);
         return redirect()->back()->with('success', 'Rekening berhasil dihapus dari daftar bebas pajak');
     }
-} 
+}

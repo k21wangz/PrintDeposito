@@ -19,7 +19,19 @@ class DashboradController extends Controller
             ->where('m_deposito.kodecab', '=', auth()->user()->kodecab)
             ->where('transaksi.ket', 'LIKE', 'Bng DEP Acru# an.%')
             ->count('m_deposito.noacc');
-        return view('dashboard', compact('depositos','dphi'));
+
+        // Kelompokkan berdasarkan tanggal bunga (format d-m-Y)
+        $groupedDepositos = $depositos->groupBy(function($item) {
+            // Ambil hari dari tgleff, buat tanggal bunga di bulan & tahun sekarang
+            $day = \Carbon\Carbon::createFromFormat('Ymd', $item->tgleff)->day;
+            return \Carbon\Carbon::create(now()->year, now()->month, $day)->format('d-m-Y');
+        });
+
+        return view('dashboard', [
+            'depositos' => $depositos,
+            'dphi' => $dphi,
+            'groupedDepositos' => $groupedDepositos
+        ]);
     }
 
     /**

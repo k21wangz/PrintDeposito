@@ -15,40 +15,48 @@ class DepositoController extends Controller
      * Display a listing of the resource.
      */
 
-     public function index()
-     {
-         $tanggal = [
-             date('d/m/Y'), // Contoh tanggal
-             // Tambahkan tanggal lain jika perlu
-         ];
+    public function index()
+    {
+        $tanggal = [date('d/m/Y')];
+        $deposito = \DB::table('m_deposito as d')
+            ->join('transaksi as t', 'd.noacc', '=', 't.dokumen')
+            ->leftJoin('tujuan_depos as td', 'd.noacc', '=', 'td.noacc_depo')
+            ->leftJoin('it_deposito_tanpa_pajak as tp', 'd.noacc', '=', 'tp.noacc')
+            ->select(
+                'd.nobilyet',
+                'd.noacc',
+                'd.fnama',
+                'd.nominal',
+                'd.bnghitung',
+                'td.type_tran',
+                'td.norek_tujuan',
+                'td.an_tujuan',
+                'td.nama_bank',
+                'd.tgleff',
+                'd.jkwaktu',
+                'd.rate',
+                \DB::raw("MAX(CASE WHEN t.ket LIKE '%Bng DEP Acru%' THEN t.nominal ELSE 0 END) AS Bng_DEP_Acru"),
+                \DB::raw("MAX(CASE WHEN t.ket LIKE '%Tax DEP%' THEN t.nominal ELSE 0 END) AS Tax_DEP"),
+                \DB::raw("MAX(CASE WHEN t.ket LIKE '%Sisa Bng DEP Acru%' THEN t.nominal ELSE 0 END) AS Sisa_Bng_Accru")
+            )
+            ->where('d.kodecab', '=', auth()->user()->kodecab)
+            ->groupBy('d.nobilyet', 'd.noacc', 'd.fnama', 'd.nominal', 'd.bnghitung', 'td.type_tran', 'td.norek_tujuan', 'td.an_tujuan', 'td.nama_bank', 'd.tgleff', 'd.jkwaktu', 'd.rate')
+            ->get();
 
-         $deposito = DB::table('m_deposito as d')
-             ->join('transaksi as t', 'd.noacc', '=', 't.dokumen')
-             ->leftJoin('tujuan_depos as td', 'd.noacc', '=', 'td.noacc_depo')
-             ->select(
-                 'd.nobilyet', // Pastikan untuk memilih nobilyet
-                 'd.noacc',
-                 'd.fnama',
-                 'd.nominal',
-                 'd.bnghitung',
-                 'td.type_tran',
-                 'td.norek_tujuan',
-                 'td.an_tujuan',
-                 'td.nama_bank',
-                 DB::raw("MAX(CASE WHEN t.ket LIKE '%Bng DEP Acru%' THEN t.nominal ELSE 0 END) AS Bng_DEP_Acru"),
-                 DB::raw("MAX(CASE WHEN t.ket LIKE '%Tax DEP%' THEN t.nominal ELSE 0 END) AS Tax_DEP"),
-                 DB::raw("MAX(CASE WHEN t.ket LIKE '%Sisa Bng DEP Acru%' THEN t.nominal ELSE 0 END) AS Sisa_Bng_Accru")
-             )
-             ->groupBy('d.nobilyet', 'd.noacc', 'd.fnama', 'd.nominal', 'd.bnghitung', 'td.type_tran', 'td.norek_tujuan', 'td.an_tujuan', 'td.nama_bank')
-             ->where('d.kodecab', '=', auth()->user()->kodecab)
-             ->get();
-         
-         return view('deposito.index', compact('tanggal', 'deposito'));
-     }
+        // Kelompokkan berdasarkan tanggal bunga (format d-m-Y)
+        $groupedDeposito = $deposito->groupBy(function($item) {
+            $day = \Carbon\Carbon::createFromFormat('Ymd', $item->tgleff)->day;
+            return \Carbon\Carbon::create(now()->year, now()->month, $day)->format('d-m-Y');
+        });
+
+        return view('deposito.index', compact('tanggal', 'deposito', 'groupedDeposito'));
+    }
+
     public function report(Request $request)
     {
+        $tanggalBunga = $request->get('tanggal_bunga');
         $pajakStatus = json_decode($request->pajakStatus, true) ?? [];
-        
+
         $deposito = DB::table('m_deposito as d')
             ->join('transaksi as t', 'd.noacc', '=', 't.dokumen')
             ->leftJoin('tujuan_depos as td', 'd.noacc', '=', 'td.noacc_depo')
@@ -63,24 +71,29 @@ class DepositoController extends Controller
                 'td.an_tujuan',
                 'td.nama_bank',
                 'tp.noacc as is_tax_free',
+                'd.tgleff',
                 DB::raw("MAX(CASE WHEN t.ket LIKE '%Bng DEP Acru%' THEN t.nominal ELSE 0 END) AS Bng_DEP_Acru"),
                 DB::raw("MAX(CASE WHEN t.ket LIKE '%Tax DEP%' THEN t.nominal ELSE 0 END) AS Tax_DEP"),
                 DB::raw("MAX(CASE WHEN t.ket LIKE '%Sisa Bng DEP Acru%' THEN t.nominal ELSE 0 END) AS Sisa_Bng_Accru")
             )
             ->groupBy('d.noacc', 'd.fnama', 'd.nominal', 'd.bnghitung', 'td.type_tran',
-                'td.norek_tujuan', 'td.an_tujuan', 'td.nama_bank', 'tp.noacc')
-            ->where('d.kodecab', '=', auth()->user()->kodecab)
-            ->get()
-            ->map(function($item) {
-                // Set pajak = 0 jika rekening ada di tabel bebas pajak
-                if ($item->is_tax_free) {
-                    $item->Tax_DEP = 0;
-                }
-                return $item;
+                'td.norek_tujuan', 'td.an_tujuan', 'td.nama_bank', 'tp.noacc', 'd.tgleff')
+            ->where('d.kodecab', '=', auth()->user()->kodecab);
+
+        // Filter jika ada parameter tanggal_bunga
+        if ($tanggalBunga) {
+            // tanggal_bunga format d-m-Y, tgleff format Ymd
+            $deposito = $deposito->get()->filter(function($item) use ($tanggalBunga) {
+                $day = \Carbon\Carbon::createFromFormat('Ymd', $item->tgleff)->day;
+                $groupedDate = \Carbon\Carbon::create(now()->year, now()->month, $day)->format('d-m-Y');
+                return $groupedDate === $tanggalBunga;
             });
-            
-        $tanggal = Tanggal::all();
-        
+        } else {
+            $deposito = $deposito->get();
+        }
+
+        $tanggal = collect([['tgl' => str_replace('-', '', $tanggalBunga)]]); // Untuk header periode
+
         return view('deposito.report', [
             'deposito' => $deposito,
             'tanggal' => $tanggal

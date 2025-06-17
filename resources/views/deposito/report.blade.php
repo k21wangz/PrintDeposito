@@ -175,7 +175,7 @@
             use Carbon\Carbon;
         @endphp
         @foreach($tanggal as $tgl)
-            <div class="periode">Periode: {{ Carbon::createFromFormat('dmY', $tgl->tgl)->format('d-m-Y') }}</div>
+            <div class="periode">Periode: {{ Carbon::createFromFormat('dmY', $tgl['tgl'])->format('d-m-Y') }}</div>
         @endforeach
     </div>
 
@@ -224,7 +224,7 @@
                     <td class="text-right">{{ number_format($depo->Sisa_Bng_Accru, 0, ',', '.') }}</td>
                     <td class="text-right">{{ number_format($bungaBersih, 0, ',', '.') }}</td>
                     <td class="text-right">{{ number_format($pajak, 0, ',', '.') }}</td>
-                    <td>{{ $depo->type_tran }} {{ $depo->nama_bank }} {{ $depo->norek_tujuan }}</td>
+                    <td>{{ $depo->type_tran }} {{ $depo->nama_bank }} {{ $depo->norek_tujuan }} {{$depo->an_tujuan}}</td>
                 </tr>
             @endforeach
             <!-- Baris Total -->

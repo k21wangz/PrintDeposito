@@ -36,7 +36,24 @@
                     </tr>
                     </thead>
                     <tbody>
+                    @php
+                        $totalBunga = 0;
+                        $totalAccru = 0;
+                        $totalSisaAccru = 0;
+                        $totalBungaDepo = 0;
+                        $totalPajak = 0;
+                        $pajakArr = [];
+                    @endphp
                     @foreach($data['deposito'] as $depo)
+                        @php
+                            $isTaxFree = App\Models\DepositoTanpaPajak::where('noacc', $depo->noacc)->exists();
+                            $pajak = $isTaxFree ? 0 : (float)($depo->Tax_DEP ?? 0);
+                            $totalBunga += (float)($depo->bnghitung ?? 0);
+                            $totalAccru += (float)($depo->Bng_DEP_Acru ?? 0);
+                            $totalSisaAccru += (float)($depo->Sisa_Bng_Accru ?? 0);
+                            $totalBungaDepo += (float)($depo->bnghitung - $pajak);
+                            $pajakArr[] = $pajak;
+                        @endphp
                         <tr>
                             <td>{{ $loop->iteration }}</td>
                             <td>{{ $depo->noacc }}</td>
@@ -44,15 +61,31 @@
                             <td class="bunga-kotor">{{ $depo->bnghitung }}</td>
                             <td>{{ number_format($depo->Bng_DEP_Acru) }}</td>
                             <td>{{ number_format($depo->Sisa_Bng_Accru) }}</td>
-                            <td class="bunga-deposito">{{ $depo->bnghitung - $depo->Tax_DEP }}</td>
-                            <td class="pajak" data-original-value={{ $depo->Tax_DEP }}>{{ $depo->Tax_DEP }}</td>
+                            <td class="bunga-deposito">{{ $depo->bnghitung - $pajak }}</td>
+                            <td class="pajak" data-original-value="{{ $pajak }}">{{ $pajak }}</td>
                             <td>
-                                <input type="checkbox" class="checkbox-dengan-pajak"
-                                    {{ $depo->Tax_DEP ? 'checked' : '' }}>
+                                <input type="checkbox" class="checkbox-dengan-pajak" {{ $pajak ? 'checked' : '' }}>
                             </td>
                             <td>{{ $depo->type_tran }} {{ $depo->nama_bank }} {{ $depo->norek_tujuan }} an. {{ $depo->an_tujuan }} </td>
                         </tr>
                     @endforeach
+                    @php
+                        $totalPajak = array_sum($pajakArr);
+                    @endphp
+                    <tr style="font-weight:bold; background:#f8f9fa;">
+                        <td colspan="3" class="text-end">TOTAL</td>
+                        <td>{{ number_format($totalBunga) }}</td>
+                        <td>{{ number_format($totalAccru) }}</td>
+                        <td>{{ number_format($totalSisaAccru) }}</td>
+                        <td>{{ number_format($totalBungaDepo) }}</td>
+                        <td>{{ number_format($totalPajak) }}</td>
+                        <td colspan="2"></td>
+                    </tr>
+                    <tr style="font-weight:bold; background:#f8f9fa;">
+                        <td colspan="7" class="text-end">TOTAL PAJAK</td>
+                        <td>{{ number_format($totalPajak) }}</td>
+                        <td colspan="2"></td>
+                    </tr>
                     </tbody>
                 </table>
 

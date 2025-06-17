@@ -117,42 +117,42 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table id="datatablesSimple" class="table table-bordered table-hover">
-                    <thead class="table-light">
-                        <tr>
-                            <th>No Rekening</th>
-                            <th>CIF</th>
-                            <th>Nama</th>
-                            <th>Nominal</th>
-                            <th>Jangka Waktu</th>
-                            <th>Rate</th>
-                            <th>Tanggal Buka</th>
-                            <th>Tanggal Bunga</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @php
-                            use Carbon\Carbon;
-                        @endphp
-                        @foreach($depositos as $depo)
-                            @php
-                                $originalDate = $depo->tgleff;
-                                $day = Carbon::createFromFormat('Ymd', $originalDate)->day;
-                                $newDate = Carbon::create(now()->year, now()->month, $day)->format('d-m-Y');
-                            @endphp
+                @foreach($groupedDepositos as $tanggalBunga => $depositosGroup)
+                    <h5 class="mt-4 mb-2">Tanggal Bunga: {{ $tanggalBunga }}</h5>
+                    <table class="table table-bordered table-hover mb-4">
+                        <thead class="table-light">
                             <tr>
-                                <td>{{ $depo->noacc }}</td>
-                                <td>{{ $depo->nocif }}</td>
-                                <td>{{ $depo->fnama }}</td>
-                                <td class="text-end">Rp {{ number_format($depo->nominal, 0, ',', '.') }}</td>
-                                <td class="text-center">{{ $depo->jkwaktu }} Bulan</td>
-                                <td class="text-center">{{ $depo->rate }}%</td>
-                                <td class="text-center">{{ Carbon::createFromFormat('Ymd', $depo->tgleff)->format('d-m-Y') }}</td>
-                                <td class="text-center">{{ $newDate }}</td>
+                                <th>No Rekening</th>
+                                <th>CIF</th>
+                                <th>Nama</th>
+                                <th>Nominal</th>
+                                <th>Jangka Waktu</th>
+                                <th>Rate</th>
+                                <th>Tanggal Buka</th>
+                                <th>Tanggal Bunga</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach($depositosGroup as $depo)
+                                @php
+                                    $originalDate = $depo->tgleff;
+                                    $day = \Carbon\Carbon::createFromFormat('Ymd', $originalDate)->day;
+                                    $newDate = \Carbon\Carbon::create(now()->year, now()->month, $day)->format('d-m-Y');
+                                @endphp
+                                <tr>
+                                    <td>{{ $depo->noacc }}</td>
+                                    <td>{{ $depo->nocif }}</td>
+                                    <td>{{ $depo->fnama }}</td>
+                                    <td class="text-end">Rp {{ number_format($depo->nominal, 0, ',', '.') }}</td>
+                                    <td class="text-center">{{ $depo->jkwaktu }} Bulan</td>
+                                    <td class="text-center">{{ $depo->rate }}%</td>
+                                    <td class="text-center">{{ \Carbon\Carbon::createFromFormat('Ymd', $depo->tgleff)->format('d-m-Y') }}</td>
+                                    <td class="text-center">{{ $newDate }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @endforeach
             </div>
         </div>
     </div>

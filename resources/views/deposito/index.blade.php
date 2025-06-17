@@ -138,79 +138,70 @@
                     Data Deposito Hari Ini
                 </div>
                 <div>
-                    <a href="{{ url('/report?withTax=' . (request('withTax', 'true'))) }}" class="btn btn-primary">
-                        <i class="fas fa-print"></i> Print Deposito
-                    </a>
-                    <button onclick="window.print()" class="btn btn-secondary">
-                        <i class="fas fa-print"></i> Print Halaman
-                    </button>
+                    @php
+                        $tanggalBunga = isset($groupedDeposito) && count($groupedDeposito) ? $groupedDeposito->keys()->first() : '';
+                    @endphp
                 </div>
             </div>
             <div class="card-body">
-                <table id="datatablesSimple" class="table table-bordered table-hover">
-                    <thead>
-                    <tr class="table-light">
-                        <th class="text-center" style="width: 5%">No</th>
-                        <th style="width: 10%">No Rekening</th>
-                        <th style="width: 15%">Nama</th>
-                        <th class="text-end" style="width: 10%">Bunga Kotor</th>
-                        <th class="text-end" style="width: 10%">Bunga Accru</th>
-                        <th class="text-end" style="width: 10%">Sisa Accru</th>
-                        <th class="text-end" style="width: 10%">Bunga Deposito</th>
-                        <th class="text-end" style="width: 8%">Pajak</th>
-                        <th style="width: 12%">Ket no rek/tab</th>
-                        <th class="text-center" style="width: 10%">Print Tiket</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @foreach($deposito as $depo)
-                        @php
-                            $isTaxFree = App\Models\DepositoTanpaPajak::where('noacc', $depo->noacc)->exists();
-                            $pajak = $isTaxFree ? 0 : $depo->Tax_DEP;
-                            $bungaBersih = $depo->bnghitung - $pajak;
-                        @endphp
-                        <tr>
-                            <td class="text-center">{{ $loop->iteration }}</td>
-                            <td>{{ $depo->noacc }}</td>
-                            <td>{{ $depo->fnama }}</td>
-                            <td class="text-end">{{ number_format($depo->bnghitung) }}</td>
-                            <td class="text-end">{{ number_format($depo->Bng_DEP_Acru) }}</td>
-                            <td class="text-end">{{ number_format($depo->Sisa_Bng_Accru) }}</td>
-                            <td class="text-end">{{ number_format($bungaBersih) }}</td>
-                            <td class="text-end">{{ number_format($pajak) }}</td>
-                            <td>{{ $depo->type_tran }} {{ $depo->nama_bank }} {{ $depo->norek_tujuan }} an. {{ $depo->an_tujuan }}</td>
-                            <td class="text-center">
-                                <div class="btn-group" role="group">
-                                    <a href="{{ route('report.tiket1', $depo->nobilyet) }}" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-print"></i> Print Tiket 1
-                                    </a>
-                                    <a href="{{ route('report.tiket2', $depo->nobilyet) }}" class="btn btn-sm btn-success">
-                                        <i class="fas fa-print"></i> Print Tiket 2
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
+                <div class="table-responsive">
+                    @foreach($groupedDeposito as $tanggalBunga => $depositosGroup)
+                        <div class="d-flex justify-content-between align-items-center mt-4 mb-2">
+                            <h5 class="mb-0">Tanggal Bunga: {{ $tanggalBunga }}</h5>
+                            <a href="{{ url('/report-total-pajak?tanggal_bunga=' . $tanggalBunga) }}" target="_blank" class="btn btn-sm btn-primary">
+                                <i class="fas fa-print"></i> Print Tanggal Ini ({{ count($depositosGroup) }} data)
+                            </a>
+                        </div>
+                        <div class="print-group-table group-{{ str_replace('-', '', $tanggalBunga) }}">
+                            <table class="table table-bordered table-hover mb-4">
+                                <thead>
+                                <tr class="table-light">
+                                    <th class="text-center" style="width: 5%">No</th>
+                                    <th style="width: 10%">No Rekening</th>
+                                    <th style="width: 15%">Nama</th>
+                                    <th class="text-end" style="width: 10%">Bunga Kotor</th>
+                                    <th class="text-end" style="width: 10%">Bunga Accru</th>
+                                    <th class="text-end" style="width: 10%">Sisa Accru</th>
+                                    <th class="text-end" style="width: 10%">Bunga Deposito</th>
+                                    <th class="text-end" style="width: 8%">Pajak</th>
+                                    <th style="width: 12%">Ket no rek/tab</th>
+                                    <th class="text-center" style="width: 10%">Print Tiket</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @foreach($depositosGroup as $depo)
+                                    @php
+                                        $isTaxFree = App\Models\DepositoTanpaPajak::where('noacc', $depo->noacc)->exists();
+                                        $pajak = $isTaxFree ? 0 : $depo->Tax_DEP;
+                                        $bungaBersih = $depo->bnghitung - $pajak;
+                                    @endphp
+                                    <tr>
+                                        <td class="text-center">{{ $loop->iteration }}</td>
+                                        <td>{{ $depo->noacc }}</td>
+                                        <td>{{ $depo->fnama }}</td>
+                                        <td class="text-end">{{ number_format($depo->bnghitung) }}</td>
+                                        <td class="text-end">{{ number_format($depo->Bng_DEP_Acru) }}</td>
+                                        <td class="text-end">{{ number_format($depo->Sisa_Bng_Accru) }}</td>
+                                        <td class="text-end">{{ number_format($bungaBersih) }}</td>
+                                        <td class="text-end">{{ number_format($pajak) }}</td>
+                                        <td>{{ $depo->type_tran }} {{ $depo->nama_bank }} {{ $depo->norek_tujuan }} an. {{ $depo->an_tujuan }}</td>
+                                        <td class="text-center">
+                                            <div class="btn-group" role="group">
+                                                <a href="{{ route('report.tiket1', $depo->nobilyet) }}" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-print"></i> Print Tiket 1
+                                                </a>
+                                                <a href="{{ route('report.tiket2', $depo->nobilyet) }}" class="btn btn-sm btn-success">
+                                                    <i class="fas fa-print"></i> Print Tiket 2
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     @endforeach
-                    
-                    <tr class="table-secondary fw-bold">
-                        <td></td>
-                        <td></td>
-                        <td class="text-end">Total</td>
-                        <td class="text-end">{{ number_format($deposito->sum('bnghitung')) }}</td>
-                        <td class="text-end">{{ number_format($deposito->sum('Bng_DEP_Acru')) }}</td>
-                        <td class="text-end">{{ number_format($deposito->sum('Sisa_Bng_Accru')) }}</td>
-                        <td class="text-end">{{ number_format($deposito->sum(function($depo) {
-                            $isTaxFree = App\Models\DepositoTanpaPajak::where('noacc', $depo->noacc)->exists();
-                            return $depo->bnghitung - ($isTaxFree ? 0 : $depo->Tax_DEP);
-                        })) }}</td>
-                        <td class="text-end">{{ number_format($deposito->sum(function($depo) {
-                            $isTaxFree = App\Models\DepositoTanpaPajak::where('noacc', $depo->noacc)->exists();
-                            return $isTaxFree ? 0 : $depo->Tax_DEP;
-                        })) }}</td>
-                        <td colspan="2"></td>
-                    </tr>
-                    </tbody>
-                </table>
+                </div>
             </div>
         </div>
     </div>
@@ -294,3 +285,21 @@
         }
     }
 </style>
+
+<script>
+// Print hanya tabel pada grup tertentu
+window.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.print-group-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var groupClass = this.getAttribute('data-group');
+            var printContents = document.querySelector('.' + groupClass).innerHTML;
+            var originalContents = document.body.innerHTML;
+            document.body.innerHTML = printContents;
+            window.print();
+            document.body.innerHTML = originalContents;
+            window.location.reload(); // reload untuk mengembalikan event listener
+        });
+    });
+});
+</script>

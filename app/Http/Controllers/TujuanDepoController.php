@@ -15,20 +15,25 @@ class TujuanDepoController extends Controller
 
     public function create()
     {
-        return view('tujuandepo.create');
+        $noaccList = \DB::table('m_deposito')->select('noacc', 'fnama', 'nocif')->get();
+        return view('tujuandepo.create', compact('noaccList'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $rules = [
             'noacc_depo' => 'required',
-            'type_tran' => 'required|in:TAB,TRF,CASH',
-            'norek_tujuan' => 'required',
-            'an_tujuan' => 'required',
-            'nama_bank' => 'required'
-        ]);
+            'type_tran' => 'required|in:Cash,Tabungan,Transfer',
+        ];
+        // Field lain hanya wajib jika bukan Cash
+        if ($request->type_tran !== 'Cash') {
+            $rules['norek_tujuan'] = 'required';
+            $rules['an_tujuan'] = 'required';
+            $rules['nama_bank'] = 'required';
+        }
+        $request->validate($rules);
 
-        TujuanDepo::create($request->all());
+        TujuanDepo::create($request->except('_token'));
         return redirect()->route('tujuandepo.index')
             ->with('success', 'Data tujuan deposito berhasil ditambahkan');
     }
@@ -49,7 +54,7 @@ class TujuanDepoController extends Controller
     {
         $request->validate([
             'noacc_depo' => 'required',
-            'type_tran' => 'required|in:TAB,TRF,CASH',
+            'type_tran' => 'required|in:Cash,Tabungan,Transfer',
             'norek_tujuan' => 'required',
             'an_tujuan' => 'required',
             'nama_bank' => 'required'
@@ -69,5 +74,15 @@ class TujuanDepoController extends Controller
 
         return redirect()->route('tujuandepo.index')
             ->with('success', 'Data tujuan deposito berhasil dihapus');
+    }
+
+    public function getTabunganByNocif(Request $request)
+    {
+        $nocif = $request->input('nocif');
+        $tabungan = \DB::table('m_tabunganb')
+            ->where('nocif', $nocif)
+            ->select('noacc', 'fnama')
+            ->get();
+        return response()->json($tabungan);
     }
 }

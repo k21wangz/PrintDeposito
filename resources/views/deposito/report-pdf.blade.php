@@ -103,13 +103,13 @@
             @foreach($deposito as $depo)
                 @php
                     $isTaxFree = App\Models\DepositoTanpaPajak::where('noacc', $depo->noacc)->exists();
-                    $pajak = $isTaxFree ? 0 : $depo->Tax_DEP;
+                    $pajak = $isTaxFree ? 0 : (float)($depo->Tax_DEP ?? 0);
                     
-                    $totalBunga += $depo->bnghitung;
-                    $totalAccru += $depo->Bng_DEP_Acru;
-                    $totalSisaAccru += $depo->Sisa_Bng_Accru;
+                    $totalBunga += (float)($depo->bnghitung ?? 0);
+                    $totalAccru += (float)($depo->Bng_DEP_Acru ?? 0);
+                    $totalSisaAccru += (float)($depo->Sisa_Bng_Accru ?? 0);
                     $totalPajak += $pajak;
-                    $bungaBersih = $depo->bnghitung - $pajak;
+                    $bungaBersih = (float)($depo->bnghitung ?? 0) - $pajak;
                     $totalBungaBersih += $bungaBersih;
                 @endphp
                 <tr>
@@ -179,4 +179,4 @@
         </tr>
     </table>
 </body>
-</html> 
+</html>
