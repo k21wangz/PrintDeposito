@@ -70,5 +70,7 @@ Route::get('/report-total-pajak', function() {
     return view('report-total-pajak', compact('data', 'tanggal'));
 });
 
+Route::get('/deposito-lalu', [DepositoController::class, 'history'])->name('deposito.history');
+
 require __DIR__.'/auth.php';
 

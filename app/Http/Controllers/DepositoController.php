@@ -240,4 +240,69 @@ class DepositoController extends Controller
 
         return view('report.tiket2', compact('nominal', 'tambahan', 'kewajibanSegera', 'jatuhTempo', 'deposito', 'terbilang', 'tanggal','bungaBersih', 'isTaxFree','tanggal'));
     }
+
+    public function history(Request $request)
+    {
+        // Ambil tanggal kemarin dari tabel tanggal (format ddmmyyyy)
+        $yesterday = Tanggal::orderByDesc('tgl')->take(2)->get()->last();
+        $defaultDate = $yesterday ? \Carbon\Carbon::createFromFormat('dmY', $yesterday->tgl)->format('Y-m-d') : \Carbon\Carbon::yesterday()->format('Y-m-d');
+        $tgltrn = $request->get('tgltrn', $defaultDate);
+        $tgltrn_db = \Carbon\Carbon::parse($tgltrn)->format('dmY');
+
+        // DEBUG: cek data join dan filter
+        $cekData = \DB::table('history_transaksi')
+            ->where('tgltrn', $tgltrn_db)
+            ->get();
+        $cekDeposito = \DB::table('m_deposito')->get();
+
+        \Log::info('DEBUG HISTORY', [
+            'tgltrn' => $tgltrn,
+            'tgltrn_db' => $tgltrn_db,
+            'defaultDate' => $defaultDate,
+            'user_kodecab' => auth()->user()->kodecab,
+            'history_transaksi_count' => $cekData->count(),
+            'history_transaksi_sample' => $cekData->take(3),
+            'm_deposito_count' => $cekDeposito->count(),
+            'm_deposito_sample' => $cekDeposito->take(3),
+        ]);
+
+        $deposito = \DB::table('m_deposito as d')
+            ->join('history_transaksi as t', 'd.noacc', '=', 't.dokumen')
+            ->leftJoin('tujuan_depos as td', 'd.noacc', '=', 'td.noacc_depo')
+            ->leftJoin('it_deposito_tanpa_pajak as tp', 'd.noacc', '=', 'tp.noacc')
+            ->select(
+                'd.nobilyet',
+                'd.noacc',
+                'd.fnama',
+                'd.nominal',
+                'd.bnghitung',
+                'td.type_tran',
+                'td.norek_tujuan',
+                'td.an_tujuan',
+                'td.nama_bank',
+                'd.tgleff',
+                'd.jkwaktu',
+                'd.rate',
+                \DB::raw("MAX(CASE WHEN t.ket LIKE '%Bng DEP Acru%' THEN t.nominal ELSE 0 END) AS Bng_DEP_Acru"),
+                \DB::raw("MAX(CASE WHEN t.ket LIKE '%Tax DEP%' THEN t.nominal ELSE 0 END) AS Tax_DEP"),
+                \DB::raw("MAX(CASE WHEN t.ket LIKE '%Sisa Bng DEP Acru%' THEN t.nominal ELSE 0 END) AS Sisa_Bng_Accru"),
+                't.tgltrn'
+            )
+            ->where('d.kodecab', '=', auth()->user()->kodecab)
+            ->where('t.tgltrn', $tgltrn_db)
+            ->groupBy('d.nobilyet', 'd.noacc', 'd.fnama', 'd.nominal', 'd.bnghitung', 'td.type_tran', 'td.norek_tujuan', 'td.an_tujuan', 'td.nama_bank', 'd.tgleff', 'd.jkwaktu', 'd.rate', 't.tgltrn')
+            ->get();
+
+        // Kelompokkan berdasarkan tanggal bunga (format d-m-Y)
+        $groupedDeposito = $deposito->groupBy(function($item) {
+            $day = \Carbon\Carbon::createFromFormat('dmY', $item->tgleff)->day;
+            return \Carbon\Carbon::create(now()->year, now()->month, $day)->format('d-m-Y');
+        });
+
+        return view('deposito.history', [
+            'history' => $deposito,
+            'defaultDate' => $defaultDate,
+            'groupedDeposito' => $groupedDeposito
+        ]);
+    }
 }

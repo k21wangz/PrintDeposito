@@ -19,8 +19,8 @@
                     <a class="nav-link" href="{{ url('/deposito') }}">
                         <i class="far fa-calendar-check"></i>Deposito Hari Ini
                     </a>
-                    <a class="nav-link" href="#">
-                        <i class="far fa-calendar-alt"></i>Deposito Yang lalu
+                    <a class="nav-link" href="{{ url('/deposito-lalu') }}">
+                        <i class="far fa-calendar-alt"></i>Deposito Yang Lalu
                     </a>
                     <a class="nav-link" href="{{ url('/tujuandepo') }}">
                         <i class="fas fa-arrow-right"></i>Tujuan Deposito
